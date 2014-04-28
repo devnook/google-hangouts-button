@@ -1,0 +1,7 @@
+{
+  "name": "google-hangouts-button",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  }
+}

@@ -1,0 +1,87 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+Element providing a button to start a Google Hangout.
+
+##### Example
+
+    <google-hangouts-button></google-hangouts-button>
+
+@element googe-hangouts-button
+@blurb Element providing a button to start a Google Hangout.
+@status alpha
+@url github.io
+-->
+<polymer-element name="google-hangouts-button">
+
+  <template>
+    <link href="google-hangouts-button.css" rel="stylesheet" />
+  </template>
+
+  <script>
+    (function() {
+      var CALLBACK_NAME = 'polymer_google_hangout_callback';
+      var API_URL = 'https://apis.google.com/js/plusone.js?onload=' + CALLBACK_NAME;
+      var pendingCallbacks = [];
+      var loading;
+
+      function loadHangoutApi(callback) {
+        if (window.gapi && window.gapi.hangout) {
+          callback();
+          return;
+        }
+        if (!loading) {
+          loading = true;
+          window.___gcfg = {
+            lang: 'en',
+            parsetags: 'explicit'
+          };
+          window[CALLBACK_NAME] = hangoutApiLoaded.bind(this);
+          var po = document.createElement('script');
+          po.type = 'text/javascript';
+          po.async = true;
+          po.src = API_URL;
+          var s = document.getElementsByTagName('script')[0];
+          s.parentNode.insertBefore(po, s);
+        }
+        pendingCallbacks.push(callback);
+      }
+
+      function hangoutApiLoaded() {
+        delete window[CALLBACK_NAME];
+        pendingCallbacks.forEach(function(callback) {
+          callback();
+        });
+      }
+
+      Polymer({
+        ready: function() {
+          loadHangoutApi(this.render.bind(this));
+        },
+        /**
+         * Renders a "Start hangout" button.
+         *
+         * @method render
+         */
+        render: function() {
+          gapi.hangout.render(this, { 'render': 'createhangout' });
+          var srcIframe = this.querySelectorAll('iframe')[0];
+          srcIframe.onload = (function(e) {
+            var iframe = document.createElement('iframe');
+            iframe.src = srcIframe.src;
+            var attributeMap= srcIframe.attributes;
+            srcIframe.parentNode.removeChild(srcIframe)
+            for (var i = 0, attr; attr = attributeMap[i]; i++) {
+              if (attr.nodeName != 'style' && attr.nodeName != 'name' && attr.nodeName != 'id') {
+                iframe.setAttribute(attr.nodeName, attr.nodeValue);
+              }
+            }
+            this.shadowRoot.appendChild(iframe)
+          }).bind(this);
+        }
+      });
+    })();
+
+  </script>
+
+</polymer-element>
